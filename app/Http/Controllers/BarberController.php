@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use App\Models\Barber;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +34,16 @@ class BarberController extends Controller
     }
 
     public function destroy(Request $request) {
+        try {
+            $barber = Barber::findOrFail($request->id);
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "uzenet" => "Nem létező barber!"], 400, options: JSON_UNESCAPED_UNICODE);
+        }
 
+        if ($barber->delete()) {
+            return response()->json(["success" => true, "uzenet" => "Sikeres törlés!"], 200, options: JSON_UNESCAPED_UNICODE);
+        } else {
+            return response()->json(["success" => false, "uzenet" => "Sikertelen törlés!"], 400, options: JSON_UNESCAPED_UNICODE);
+        }
     }
 }

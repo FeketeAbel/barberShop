@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 class AppointmentController extends Controller
 {
     public function index() {
-        $appointment = Appointment::all();
+        $appointment = Appointment::with('barber')->get();
         return response()->json($appointment, 200, ["Access-Control-Allow-Origin" => "*"], JSON_UNESCAPED_UNICODE);
     }
 
@@ -39,6 +39,17 @@ class AppointmentController extends Controller
     }
 
     public function destroy(Request $request) {
+        try {
+            $request->validate([
+                "id" => "required|exists:barbers,id",
+            ], [
+                "required" => "A(z) :attribute mező megadása kötelező!",
+                "exists"=> "A(z) :attribute mezőnek egy létező barberhez kell tartoznia!",
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(["success" => false, "uzenet" => $e->errors()], 400, ["Access-Control-Allow-Origin" => "*"], JSON_UNESCAPED_UNICODE);
+        }
+
         try {
             $appointment = Appointment::findOrFail($request->id);
         } catch (Exception $e) {
